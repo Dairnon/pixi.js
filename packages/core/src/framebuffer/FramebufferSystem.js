@@ -217,7 +217,7 @@ export default class FramebufferSystem extends System
 
         let count = colorTextures.length;
 
-        if (!this.drawBufferExtension)
+        if (this.renderer.context.webGLVersion !== 2 && !this.drawBufferExtension)
         {
             count = Math.min(count, 1);
         }
@@ -251,17 +251,23 @@ export default class FramebufferSystem extends System
 
             activeTextures.push(gl.COLOR_ATTACHMENT0 + i);
         }
-
-        if (this.drawBufferExtension && activeTextures.length > 1)
+        if (activeTextures.length > 1)
         {
-            this.drawBufferExtension.drawBuffersWEBGL(activeTextures);
+            if (this.renderer.context.webGLVersion === 2)
+            {
+                gl.drawBuffers(activeTextures);
+            }
+            else if (this.drawBufferExtension)
+            {
+                this.drawBufferExtension.drawBuffersWEBGL(activeTextures);
+            }
         }
 
         if (framebuffer.depthTexture)
         {
             const depthTextureExt = this.renderer.context.extensions.depthTexture;
 
-            if (depthTextureExt)
+            if (this.renderer.context.webGLVersion === 2 || depthTextureExt)
             {
                 const depthTexture = framebuffer.depthTexture;
 
